@@ -17,17 +17,23 @@ class Controller extends BaseController
 {
     use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
 
-    public function read(): array
+    /**
+     * @param Request $request
+     * @return array
+     */
+    public function read(Request $request): array
     {
+        $params = $request->all();
         $events = Event::get();
 
         return $events->toArray();
     }
 
     /**
+     * @param Request $request
      * @return array
      */
-    public function create(): array
+    public function create(Request $request): array
     {
         $event = new Event;
 
@@ -61,10 +67,12 @@ class Controller extends BaseController
     }
 
     /**
+     * @param Request $request
      * @return array
      */
-    public function update(): array
+    public function update(Request $request): array
     {
+        $params = $request->all();
         $events = Event::get();
         // TODO
         $firstEvent = $events->first();
@@ -82,10 +90,12 @@ class Controller extends BaseController
     }
 
     /**
+     * @param Request $request
      * @return array
      */
-    public function delete(): array
+    public function delete(Request $request): array
     {
+        $params = $request->all();
         $events = Event::get();
         // TODO
         $firstEvent = $events->first();
