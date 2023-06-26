@@ -19,3 +19,5 @@ cp .env.example .env
  * `/api/get-event`
  * `/api/update-event`
  * `/api/delete-event`
+ * `/api/get-client`
+ * `/api/json`
