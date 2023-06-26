@@ -154,4 +154,11 @@ class Controller extends BaseController
         }
         return ['saved' => $credentialsPath];
     }
+
+    public function json(Request $request)
+    {
+        return response()->json($request->all());
+        //2023-06-26 17:30:00
+        $date = Carbon::createFromFormat('m/d/Y', $myDate)->format('Y-m-d');
+    }
 }
