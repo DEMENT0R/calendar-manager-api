@@ -4,9 +4,13 @@
 Google Calendar API for comfort using in legacy projects
 
 ### Installation
-Clone repo and run:
+Clone repo and install dependencies:
 ```sh
 composer install
+```
+Copy and configure .env:
+```sh
+cp .env.example .env
 ```
 
 ### Endpoints
