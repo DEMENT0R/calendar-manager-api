@@ -35,28 +35,18 @@ class Controller extends BaseController
      */
     public function create(Request $request): array
     {
-        $event = new Event;
-
-        $event->name = 'A new event (1)';
-        $event->description = 'Event description';
-        $event->startDateTime = Carbon\Carbon::now();
-        $event->endDateTime = Carbon\Carbon::now()->addHour();
-        $event->addAttendee([
-            'email' => 'john@example.com',
-            'name' => 'John Doe',
-            'comment' => 'Lorum ipsum',
-        ]);
-        $event->addAttendee(['email' => 'anotherEmail@gmail.com']);
-        $event->addMeetLink(); // optionally add a google meet link to the event
-
-        $event->save();
+        $params = $request->all();
 
         // create a new event
-        //$event = Event::create([
-        //    'name' => 'A new event (2)',
-        //    'startDateTime' => Carbon\Carbon::now(),
-        //    'endDateTime' => Carbon\Carbon::now()->addHour(),
-        //]);
+        $event = Event::create([
+            'name' => $params['name'],
+            'description' => $params['description'],
+            // 2023-06-26 17:30:00
+            'startDateTime' => Carbon\Carbon::createFromFormat('Y-m-d H:i:s', $params['start']),
+            'endDateTime' => Carbon\Carbon::createFromFormat('Y-m-d H:i:s', $params['end']),
+            //'startDateTime' => Carbon\Carbon::now(),
+            //'endDateTime' => Carbon\Carbon::now()->addHour(),
+        ]);
 
         return [
             'summary' => $event->googleEvent->summary,
