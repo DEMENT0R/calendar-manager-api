@@ -103,42 +103,33 @@ class Controller extends BaseController
     {
         $client = new Google_Client();
         $client->setApplicationName('Google Sheets API PHP Quickstart');
-        //$client->setScopes(Google_Service_Sheets::SPREADSHEETS);
         $client->setScopes(Google_Service_Calendar::CALENDAR);
         $client->setScopes('https://www.googleapis.com/auth/calendar');
         $client->setAuthConfig(storage_path('app/google-calendar/oauth-credentials.json'));
         $client->setAccessType('offline');
         $client->setRedirectUri('https://dev4.pay2me.com/calendar-manager/public/api/get-client');
-        $credentialsPath = storage_path('app/google-calendar/token.json');
+        $credentialsPath = storage_path('app/google-calendar/oauth-token.json');
         if (file_exists($credentialsPath)) {
             $accessToken = json_decode(
                 file_get_contents($credentialsPath),
                 true
             );
         } else {
-            //define('STDIN',fopen("php://stdin","r"));
             $authUrl = $client->createAuthUrl();
-            //printf("Open the following link in your browser:\n%s\n", $authUrl);
-            //print 'Enter verification code: ';
-            //$authCode = trim(fgets(STDIN));
             if ($request->get('code')) {
                 $authCode = $request->get('code');
             } else {
                 exit("<a href='$authUrl'>auth</a>");
             }
-            //$scope = 'https://www.googleapis.com/auth/spreadsheets';
 
-            // Exchange authorization code for an access token.
             $accessToken = $client->fetchAccessTokenWithAuthCode($authCode);
-            exit(json_encode($accessToken, JSON_PRETTY_PRINT));
             if (array_key_exists('error', $accessToken)) {
                 throw new Exception(join(', ', $accessToken));
             }
             if (!file_exists(dirname($credentialsPath))) {
                 mkdir(dirname($credentialsPath), 0700, true);
             }
-            file_put_contents($credentialsPath, json_encode($accessToken));
-            printf("Credentials saved to %s\n", $credentialsPath);
+            file_put_contents($credentialsPath, json_encode($accessToken, JSON_PRETTY_PRINT));
         }
         $client->setAccessToken($accessToken);
         if ($client->isAccessTokenExpired()) {
@@ -151,6 +142,6 @@ class Controller extends BaseController
             $accessToken = array_merge($jsonArray, $newAccessToken);
             file_put_contents($credentialsPath, json_encode($accessToken));
         }
-        return $client;
+        return ['saved' => $credentialsPath];
     }
 }

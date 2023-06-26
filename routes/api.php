@@ -24,6 +24,8 @@ Route::get('/get-event', 'Controller@read');
 Route::get('/update-event', 'Controller@update');
 Route::get('/delete-event', 'Controller@delete');
 
+Route::get('/get-client', 'Controller@getClient');
+
 Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
