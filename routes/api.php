@@ -18,9 +18,11 @@ Route::get('/', function () {
     return ['version' => app()->version()];
 });
 
-Route::get('/events', 'Controller@getEvents');
-Route::get('/add-event', 'Controller@addEvent');
-Route::get('/get-client', 'Controller@getClient');
+Route::get('/events', 'Controller@read');
+Route::get('/add-event', 'Controller@create');
+Route::get('/get-event', 'Controller@read');
+Route::get('/update-event', 'Controller@update');
+Route::get('/delete-event', 'Controller@delete');
 
 Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();

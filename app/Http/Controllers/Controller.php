@@ -19,18 +19,18 @@ class Controller extends BaseController
 {
     use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
 
-    public function getEvents()
+    public function read()
     {
         $events = Event::get();
 
         return $events->toArray();
     }
-    public function addEvent()
+
+    public function create()
     {
-        //create a new event
         $event = new Event;
 
-        $event->name = 'A new event';
+        $event->name = 'A new event (1)';
         $event->description = 'Event description';
         $event->startDateTime = Carbon\Carbon::now();
         $event->endDateTime = Carbon\Carbon::now()->addHour();
@@ -44,54 +44,47 @@ class Controller extends BaseController
 
         $event->save();
 
-        dd($event);
+        // create a new event
+        //$event = Event::create([
+        //    'name' => 'A new event (2)',
+        //    'startDateTime' => Carbon\Carbon::now(),
+        //    'endDateTime' => Carbon\Carbon::now()->addHour(),
+        //]);
+
+        return [
+            'summary' => $event->googleEvent->summary,
+            'description' => $event->googleEvent->description,
+            'start' => $event->googleEvent->getStart(),
+            'end' => $event->googleEvent->getEnd(),
+        ];
     }
 
-    public function getCalendarTest()
+    public function update()
     {
-        //create a new event
-        $event = new Event;
-
-        $event->name = 'A new event';
-        $event->description = 'Event description';
-        //$event->startDateTime = Carbon\Carbon::now();
-        //$event->endDateTime = Carbon\Carbon::now()->addHour();
-        $event->startDateTime = new DateTime();
-        $event->endDateTime = (new DateTime())->add(
-            DateInterval::createFromDateString(
-                "1 hour"
-            )
-        );
-        //->format('Y-m-d H:i:s')
-        $event->addAttendee([
-            'email' => 'john@example.com',
-            'name' => 'John Doe',
-            'comment' => 'Lorum ipsum',
-        ]);
-        $event->addAttendee(['email' => 'anotherEmail@gmail.com']);
-        $event->addMeetLink(); // optionally add a google meet link to the event
-
-        $event->save();
-
-        // get all future events on a calendar
         $events = Event::get();
-
-        // update existing event
+        // TODO
         $firstEvent = $events->first();
         $firstEvent->name = 'updated name';
         $firstEvent->save();
 
         $firstEvent->update(['name' => 'updated again']);
 
-        // create a new event
-        Event::create([
-            'name' => 'A new event',
-            'startDateTime' => Carbon\Carbon::now(),
-            'endDateTime' => Carbon\Carbon::now()->addHour(),
-        ]);
+        return [
+            'summary' => $firstEvent->googleEvent->summary,
+            'description' => $firstEvent->googleEvent->description,
+            'start' => $firstEvent->googleEvent->getStart(),
+            'end' => $firstEvent->googleEvent->getEnd(),
+        ];
+    }
 
-        // delete an event
-        $event->delete();
+    public function delete()
+    {
+        $events = Event::get();
+        // TODO
+        $firstEvent = $events->first();
+        $firstEvent->delete();
+
+        dd($firstEvent);
     }
 
     public function getClient(Request $request)
