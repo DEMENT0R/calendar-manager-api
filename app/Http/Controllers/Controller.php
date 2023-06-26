@@ -2,8 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use DateInterval;
-use DateTime;
 use Exception;
 use Google_Client;
 use Google_Service_Calendar;
@@ -26,6 +24,9 @@ class Controller extends BaseController
         return $events->toArray();
     }
 
+    /**
+     * @return array
+     */
     public function create(): array
     {
         $event = new Event;
@@ -59,6 +60,9 @@ class Controller extends BaseController
         ];
     }
 
+    /**
+     * @return array
+     */
     public function update(): array
     {
         $events = Event::get();
@@ -77,7 +81,10 @@ class Controller extends BaseController
         ];
     }
 
-    public function delete()
+    /**
+     * @return array
+     */
+    public function delete(): array
     {
         $events = Event::get();
         // TODO
