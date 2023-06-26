@@ -12,6 +12,8 @@ Clone repo and install dependencies:
 ```sh
 composer install
 ```
+Check read/write rules for dir:  
+`storage/app/google-calendar`
 
 ### Endpoints
  * `/api/events`
