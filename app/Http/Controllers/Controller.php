@@ -19,14 +19,14 @@ class Controller extends BaseController
 {
     use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
 
-    public function read()
+    public function read(): array
     {
         $events = Event::get();
 
         return $events->toArray();
     }
 
-    public function create()
+    public function create(): array
     {
         $event = new Event;
 
@@ -59,7 +59,7 @@ class Controller extends BaseController
         ];
     }
 
-    public function update()
+    public function update(): array
     {
         $events = Event::get();
         // TODO
@@ -84,7 +84,12 @@ class Controller extends BaseController
         $firstEvent = $events->first();
         $firstEvent->delete();
 
-        dd($firstEvent);
+        return [
+            'summary' => $firstEvent->googleEvent->summary,
+            'description' => $firstEvent->googleEvent->description,
+            'start' => $firstEvent->googleEvent->getStart(),
+            'end' => $firstEvent->googleEvent->getEnd(),
+        ];
     }
 
     public function getClient(Request $request)
