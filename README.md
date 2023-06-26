@@ -12,3 +12,6 @@ composer install
 ### Endpoints
  * `/api/events`
  * `/api/add-event`
+ * `/api/get-event`
+ * `/api/update-event`
+ * `/api/delete-event`
