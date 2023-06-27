@@ -153,8 +153,12 @@ class Controller extends BaseController
         if ($client->isAccessTokenExpired()) {
             $jsonCred = file_get_contents($credentialsPath);
             $jsonArray = json_decode($jsonCred, true);
+            if (empty($jsonArray['refresh_token'])) {
+                unlink($credentialsPath);
+                return ['error' => 'refresh_token needed! Please refresh page'];
+            }
             $client->fetchAccessTokenWithRefreshToken(
-                $jsonArray["refresh_token"]
+                $jsonArray['refresh_token']
             );
             $newAccessToken = $client->getAccessToken();
             $accessToken = array_merge($jsonArray, $newAccessToken);
