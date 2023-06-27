@@ -26,6 +26,11 @@ class Controller extends BaseController
         $params = $request->all();
         $events = Event::get();
 
+        try {
+            $events = Event::get();
+        } catch (Exception $exception) {
+            return json_decode($exception->getMessage(), true);
+        }
         return $events->toArray();
     }
 
@@ -36,17 +41,20 @@ class Controller extends BaseController
     public function create(Request $request): array
     {
         $params = $request->all();
-
-        // create a new event
-        $event = Event::create([
-            'name' => $params['name'],
-            'description' => $params['description'],
-            // 2023-06-26 17:30:00
-            'startDateTime' => Carbon\Carbon::createFromFormat('Y-m-d H:i:s', $params['start']),
-            'endDateTime' => Carbon\Carbon::createFromFormat('Y-m-d H:i:s', $params['end']),
-            //'startDateTime' => Carbon\Carbon::now(),
-            //'endDateTime' => Carbon\Carbon::now()->addHour(),
-        ]);
+        try {
+            // create a new event
+            $event = Event::create([
+                'name' => $params['name'],
+                'description' => $params['description'],
+                // 2023-06-26 17:30:00
+                'startDateTime' => Carbon\Carbon::createFromFormat('Y-m-d H:i:s', $params['start']),
+                'endDateTime' => Carbon\Carbon::createFromFormat('Y-m-d H:i:s', $params['end']),
+                //'startDateTime' => Carbon\Carbon::now(),
+                //'endDateTime' => Carbon\Carbon::now()->addHour(),
+            ]);
+        } catch (Exception $exception) {
+            return json_decode($exception->getMessage(), true);
+        }
 
         return [
             'summary' => $event->googleEvent->summary,
@@ -67,9 +75,14 @@ class Controller extends BaseController
         // TODO
         $firstEvent = $events->first();
         $firstEvent->name = 'updated name';
-        $firstEvent->save();
 
-        $firstEvent->update(['name' => 'updated again']);
+        try {
+            $firstEvent->save();
+
+            $firstEvent->update(['name' => 'updated again']);
+        } catch (Exception $exception) {
+            return json_decode($exception->getMessage(), true);
+        }
 
         return [
             'summary' => $firstEvent->googleEvent->summary,
@@ -86,10 +99,16 @@ class Controller extends BaseController
     public function delete(Request $request): array
     {
         $params = $request->all();
-        $events = Event::get();
-        // TODO
-        $firstEvent = $events->first();
-        $firstEvent->delete();
+
+        try {
+            $events = Event::get();
+            // TODO
+            $firstEvent = $events->first();
+
+            $firstEvent->delete();
+        } catch (Exception $exception) {
+            return json_decode($exception->getMessage(), true);
+        }
 
         return [
             'summary' => $firstEvent->googleEvent->summary,
