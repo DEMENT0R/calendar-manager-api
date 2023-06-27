@@ -24,7 +24,6 @@ class Controller extends BaseController
     public function read(Request $request): array
     {
         $params = $request->all();
-        $events = Event::get();
 
         try {
             $events = Event::get();
