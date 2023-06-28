@@ -159,7 +159,11 @@ class Controller extends BaseController
             $jsonArray = json_decode($jsonCred, true);
             if (empty($jsonArray['refresh_token'])) {
                 File::delete($credentialsPath);
-                return ['error' => 'refresh_token needed! Please refresh page'];
+                //return [
+                //    'result' => 'error',
+                //    'message' => 'refresh_token needed! Please refresh page',
+                //];
+                return redirect('/api/get-client');
             }
             $client->fetchAccessTokenWithRefreshToken(
                 $jsonArray['refresh_token']
@@ -168,7 +172,10 @@ class Controller extends BaseController
             $accessToken = array_merge($jsonArray, $newAccessToken);
             file_put_contents($credentialsPath, json_encode($accessToken));
         }
-        return ['result' => 'ok'];
+        return [
+            'result' => 'success',
+            'message' => 'token is OK',
+        ];
     }
 
     public function json(Request $request): array
