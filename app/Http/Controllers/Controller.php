@@ -29,7 +29,7 @@ class Controller extends BaseController
         try {
             $events = Event::get();
         } catch (Exception $exception) {
-            return json_decode($exception->getMessage(), true);
+            return json_decode($exception->getMessage(), true) ?? ['status' => 'Not found'];
         }
         return $events->toArray();
     }
@@ -59,8 +59,9 @@ class Controller extends BaseController
         return [
             'summary' => $event->googleEvent->summary,
             'description' => $event->googleEvent->description,
-            'start' => $event->googleEvent->getStart(),
-            'end' => $event->googleEvent->getEnd(),
+            'start' => $event->googleEvent->getStart()->dateTime,
+            'end' => $event->googleEvent->getEnd()->dateTime,
+            'link' => $event->googleEvent->htmlLink,
         ];
     }
 
@@ -149,6 +150,7 @@ class Controller extends BaseController
                 mkdir(dirname($credentialsPath), 0700, true);
             }
             file_put_contents($credentialsPath, json_encode($accessToken, JSON_PRETTY_PRINT));
+            return ['saved' => $credentialsPath];
         }
         $client->setAccessToken($accessToken);
         if ($client->isAccessTokenExpired()) {
@@ -165,12 +167,12 @@ class Controller extends BaseController
             $accessToken = array_merge($jsonArray, $newAccessToken);
             file_put_contents($credentialsPath, json_encode($accessToken));
         }
-        return ['saved' => $credentialsPath];
+        return ['result' => 'ok'];
     }
 
-    public function json(Request $request)
+    public function json(Request $request): array
     {
-        return response()->json($request->all());
+        return $request->all();
         //2023-06-26 17:30:00
         $date = Carbon::createFromFormat('m/d/Y', $myDate)->format('Y-m-d');
     }
