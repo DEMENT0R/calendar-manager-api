@@ -10,6 +10,7 @@ use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller as BaseController;
+use Illuminate\Support\Facades\File;
 use Spatie\GoogleCalendar\Event;
 use Carbon;
 
@@ -154,7 +155,7 @@ class Controller extends BaseController
             $jsonCred = file_get_contents($credentialsPath);
             $jsonArray = json_decode($jsonCred, true);
             if (empty($jsonArray['refresh_token'])) {
-                unlink($credentialsPath);
+                File::delete($credentialsPath);
                 return ['error' => 'refresh_token needed! Please refresh page'];
             }
             $client->fetchAccessTokenWithRefreshToken(
