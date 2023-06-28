@@ -150,7 +150,8 @@ class Controller extends BaseController
                 mkdir(dirname($credentialsPath), 0700, true);
             }
             file_put_contents($credentialsPath, json_encode($accessToken, JSON_PRETTY_PRINT));
-            return ['saved' => $credentialsPath];
+            //return ['saved' => $credentialsPath];
+            return redirect('/api/get-client');
         }
         $client->setAccessToken($accessToken);
         if ($client->isAccessTokenExpired()) {
