@@ -21,6 +21,8 @@ Route::get('/', function () {
 // CRUD
 Route::get('/events/create', 'Controller@create');
 Route::get('/events/read', 'Controller@read');
+Route::get('/events/list', 'Controller@list');
+Route::get('/events/find/{id}', 'Controller@find');
 Route::get('/events/update', 'Controller@update');
 Route::get('/events/delete', 'Controller@delete');
 

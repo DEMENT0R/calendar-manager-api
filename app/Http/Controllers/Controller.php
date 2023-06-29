@@ -22,16 +22,43 @@ class Controller extends BaseController
      * @param Request $request
      * @return array
      */
+    public function list(Request $request): array
+    {
+        $params = $request->all();
+
+        return Event::get()->toArray();
+    }
+
+    /**
+     * @param Request $request
+     * @return array
+     */
     public function read(Request $request): array
     {
         $params = $request->all();
 
         try {
-            $events = Event::get();
+            if (!empty($params['start']) && !empty($params['end'])) {
+                $start = Carbon\Carbon::parse($params['start']);
+                $end = Carbon\Carbon::parse($params['end']);
+
+                $events = Event::get($start, $end);
+            } else {
+                $events = Event::get();
+            }
         } catch (Exception $exception) {
             return json_decode($exception->getMessage(), true) ?? ['status' => 'Not found'];
         }
         return $events->toArray();
+    }
+
+    /**
+     * @param $id
+     * @return array
+     */
+    public function find($id): array
+    {
+        return (array)Event::find($id);
     }
 
     /**
