@@ -89,8 +89,8 @@ class Controller extends BaseController
                 'name' => $params['name'],
                 'description' => $params['description'],
                 // 2023-06-26 17:30:00
-                'startDateTime' => Carbon\Carbon::createFromFormat('Y-m-d H:i:s', $params['start']),
-                'endDateTime' => Carbon\Carbon::createFromFormat('Y-m-d H:i:s', $params['end']),
+                'startDateTime' => Carbon\Carbon::createFromFormat(DATE_ATOM, $params['start']),
+                'endDateTime' => Carbon\Carbon::createFromFormat(DATE_ATOM, $params['end']),
                 //'startDateTime' => Carbon\Carbon::now(),
                 //'endDateTime' => Carbon\Carbon::now()->addHour(),
             ]);
