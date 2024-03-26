@@ -86,14 +86,20 @@ class Controller extends BaseController
 
             // create a new event
             $event = Event::create([
-                'name' => $params['name'],
-                'description' => $params['description'],
+                'name' => $params['name'] ?? '',
+                'description' => $params['description'] ?? '',
                 // 2023-06-26 17:30:00
                 'startDateTime' => Carbon\Carbon::createFromFormat(DATE_ATOM, $params['start']),
                 'endDateTime' => Carbon\Carbon::createFromFormat(DATE_ATOM, $params['end']),
                 //'startDateTime' => Carbon\Carbon::now(),
                 //'endDateTime' => Carbon\Carbon::now()->addHour(),
+                'colorId' => $params['colorId'],
             ]);
+
+            if (!empty($params['attendee']) && $params['attendee'] != '') {
+                $event->addAttendee(['email' => $params['attendee']]);
+                $event->save();
+            }
         } catch (Exception $exception) {
             return json_decode($exception->getMessage(), true);
         }
