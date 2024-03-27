@@ -98,7 +98,10 @@ class Controller extends BaseController
 
             if (!empty($params['attendee']) && $params['attendee'] != '') {
                 $event->addAttendee(['email' => $params['attendee']]);
-                $event->save();
+                $optParams = [
+                    'sendUpdates' => true,
+                ];
+                $event->save('updateEvent', $optParams);
             }
         } catch (Exception $exception) {
             return json_decode($exception->getMessage(), true);
