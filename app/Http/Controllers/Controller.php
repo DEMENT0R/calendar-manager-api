@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Exception;
 use Google_Client;
 use Google_Service_Calendar;
+use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Foundation\Validation\ValidatesRequests;
@@ -30,7 +31,7 @@ class Controller extends BaseController
 
             return Event::get()->toArray();
         } catch (Exception $exception) {
-            return json_decode($exception->getMessage(), true) ?? ['status' => 'Not found'];
+            return json_decode($exception->getMessage(), true) ?? ['exception' => $exception->getMessage()];
         }
     }
 
@@ -41,6 +42,7 @@ class Controller extends BaseController
     public function read(Request $request): array
     {
         $params = $request->all();
+        //$date = Carbon::createFromFormat('m/d/Y', $myDate)->format('Y-m-d');
 
         try {
             $this->checkOrUpdateToken();
@@ -81,10 +83,28 @@ class Controller extends BaseController
     public function create(Request $request): array
     {
         $params = $request->all();
+        //$date = Carbon::createFromFormat('m/d/Y', $myDate)->format('Y-m-d');
+
+//        $event = new Event;
+//        $event->name = 'A new event (1)';
+//        $event->description = 'Event description';
+//        $event->startDateTime = Carbon\Carbon::now();
+//        $event->endDateTime = Carbon\Carbon::now()->addHour();
+//        $event->addAttendee([
+//            'email' => 'john@example.com',
+//            'name' => 'John Doe',
+//            'comment' => 'Lorum ipsum',
+//        ]);
+//        $event->addAttendee(['email' => 'anotherEmail@gmail.com']);
+//        $event->addMeetLink(); // optionally add a google meet link to the event
+//
+//        $event->save();
+
         try {
             $this->checkOrUpdateToken();
 
-            // create a new event
+            // create a new event\
+            /** @var $event Event */
             $event = Event::create([
                 'name' => $params['name'] ?? '',
                 'description' => $params['description'] ?? '',
@@ -96,17 +116,31 @@ class Controller extends BaseController
                 'colorId' => $params['colorId'],
             ]);
 
+            // $event = new Event;
+            // $event->name = $params['name'] ?? '';
+            // $event->description = $params['description'] ?? '';
+            // $event->startDateTime = Carbon\Carbon::createFromFormat(DATE_ATOM, $params['start']);
+            // $event->endDateTime = Carbon\Carbon::createFromFormat(DATE_ATOM, $params['end']);
+            // $event->colorId = $params['colorId'];
             if (!empty($params['attendee']) && $params['attendee'] != '') {
-                $event->addAttendee(['email' => $params['attendee']]);
+                $event->addAttendee([
+                    'email' => $params['attendee'],
+                    'name' => 'P2M Booking',
+                    'comment' => 'Ваше бронирование',
+                ]);
                 $optParams = [
-                    'sendUpdates' => true,
+                    // 'sendNotifications' => true, // deprecated
+                    'sendUpdates' => 'all',
                 ];
                 $event->save('updateEvent', $optParams);
             }
+
         } catch (Exception $exception) {
-            return json_decode($exception->getMessage(), true);
+            return json_decode($exception->getMessage(), true) ?? ['exception' => $exception->getMessage()];
         }
 
+        // TODO
+        //return (array)$event->googleEvent;
         return [
             'id' => $event->googleEvent->id,
             'summary' => $event->googleEvent->summary,
@@ -124,6 +158,8 @@ class Controller extends BaseController
     public function update(Request $request): array
     {
         $params = $request->all();
+        //$date = Carbon::createFromFormat('m/d/Y', $myDate)->format('Y-m-d');
+
 
         try {
             $this->checkOrUpdateToken();
@@ -154,24 +190,37 @@ class Controller extends BaseController
     public function delete(Request $request): array
     {
         $params = $request->all();
-
+//exit(json_encode($params, JSON_PRETTY_PRINT));
         try {
             $this->checkOrUpdateToken();
 
-            $events = Event::get();
-            // TODO
-            $firstEvent = $events->first();
+            $event = Event::find($params['id'] ?? null);
 
-            $firstEvent->delete();
-        } catch (Exception $exception) {
-            return json_decode($exception->getMessage(), true);
+            $event->delete();
+        } catch (Exception|BindingResolutionException $exception) {
+            return [
+                'exception' => json_decode($exception->getMessage(), true),
+            ];
         }
 
         return [
-            'summary' => $firstEvent->googleEvent->summary,
-            'description' => $firstEvent->googleEvent->description,
-            'start' => $firstEvent->googleEvent->getStart(),
-            'end' => $firstEvent->googleEvent->getEnd(),
+            'summary' => $event->googleEvent->summary,
+            'description' => $event->googleEvent->description,
+            'start' => $event->googleEvent->getStart(),
+            'end' => $event->googleEvent->getEnd(),
+        ];
+    }
+
+    public function clear(Request $request): array
+    {
+        $events = Event::get(Carbon\Carbon::now()->subWeek());
+        /** @var Event $event */
+        foreach ($events as $event) {
+            $event->delete();
+        }
+
+        return [
+            'events' => $events,
         ];
     }
 
@@ -204,11 +253,23 @@ class Controller extends BaseController
                 mkdir(dirname($credentialsPath), 0700, true);
             }
             file_put_contents($credentialsPath, json_encode($accessToken, JSON_PRETTY_PRINT));
+            //return [
+            //    'result' => 'success',
+            //    'saved' => $credentialsPath,
+            //    'accessToken' => $accessToken,
+            //];
             return redirect('/api/get-client');
         }
         $client->setAccessToken($accessToken);
         if ($client->isAccessTokenExpired()) {
-            return $this->updateToken($credentialsPath, $client);
+            try {
+                return $this->updateToken($credentialsPath, $client);
+            } catch (Exception $e) {
+                return [
+                    'result' => 'failed',
+                    'message' => $e->getMessage(),
+                ];
+            }
         }
         return [
             'result' => 'success',
@@ -230,11 +291,11 @@ class Controller extends BaseController
     private function getGoogleClient(): Google_Client
     {
         $client = new Google_Client();
-        $client->setApplicationName('Google Sheets API PHP Quickstart');
+        $client->setApplicationName('Google API');
         $client->setScopes(Google_Service_Calendar::CALENDAR);
         $client->setAuthConfig(storage_path('app/google-calendar/oauth-credentials.json'));
         $client->setAccessType('offline');
-        $client->setRedirectUri('https://dev4.pay2me.com/calendar-manager/public/api/get-client');
+        $client->setRedirectUri(env('APP_URL') . '/api/get-client');
         return $client;
     }
 
@@ -242,6 +303,7 @@ class Controller extends BaseController
      * @param string $credentialsPath
      * @param Google_Client $client
      * @return array
+     * @throws Exception
      */
     private function updateToken(string $credentialsPath, Google_Client $client): array
     {
@@ -253,17 +315,23 @@ class Controller extends BaseController
             //    'result' => 'error',
             //    'message' => 'refresh_token needed! Please refresh page',
             //];
-            return [
-                'result' => 'failed',
-                'message' => 'token is EXPIRED, refresh this page',
-            ];
+            throw new Exception('token is EXPIRED, refresh this page');
         }
         $client->fetchAccessTokenWithRefreshToken(
             $jsonArray['refresh_token']
         );
         $newAccessToken = $client->getAccessToken();
+        $oldAccessToken = json_decode(
+            file_get_contents($credentialsPath),
+            true
+        );
+        //exit(json_encode([$oldAccessToken, $newAccessToken], JSON_PRETTY_PRINT));
+        if ($newAccessToken == null || $oldAccessToken['access_token'] == $newAccessToken['access_token']) {
+            File::delete($credentialsPath);
+            throw new Exception('Refresh token is NOT updated, reload get-client page!');
+        }
         $accessToken = array_merge($jsonArray, $newAccessToken);
-        file_put_contents($credentialsPath, json_encode($accessToken));
+        file_put_contents($credentialsPath, json_encode($accessToken, JSON_PRETTY_PRINT));
         return [
             'result' => 'success',
             'message' => 'token is UPDATED',
@@ -281,5 +349,33 @@ class Controller extends BaseController
             $credentialsPath = storage_path('app/google-calendar/oauth-token.json');
             $this->updateToken($credentialsPath, $client);
         }
+    }
+
+    /**
+     * @throws \Google\Exception
+     */
+    public function forceUpdateToken(int $count = 1): array
+    {
+        $client = $this->getGoogleClient();
+        $credentialsPath = storage_path('app/google-calendar/oauth-token.json');
+        $result = [];
+        for ($i = 0; $i < $count; $i++) {
+            try {
+                $result[$i] = [
+                    'index' => $i,
+                    'result' => (bool)$this->updateToken($credentialsPath, $client),
+                    'raw' => $this->updateToken($credentialsPath, $client),
+                ];
+            } catch (Exception $e) {
+                $result[$i] = [
+                    'index' => $i,
+                    'result' => false,
+                    'error' => $e->getMessage(),
+                ];
+                return $result;
+            }
+        }
+
+        return $result;
     }
 }
